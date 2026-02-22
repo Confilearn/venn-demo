@@ -30,7 +30,6 @@ export default function LoginScreen() {
     setLoading(false);
     if (success) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.dismissAll();
     }
   };
 

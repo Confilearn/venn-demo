@@ -45,7 +45,6 @@ export default function MoreScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign Out', style: 'destructive', onPress: async () => {
         await logout();
-        router.replace('/(auth)/login');
       }},
     ]);
   };

@@ -97,12 +97,6 @@ export default function DashboardScreen() {
   const webTop = Platform.OS === 'web' ? 67 : 0;
   const webBottom = Platform.OS === 'web' ? 84 : 0;
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/(auth)/login');
-    }
-  }, [isAuthenticated]);
-
   const totalBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
   const recentTx = transactions.slice(0, 5);
   const maxVal = Math.max(...cashflowData.monthlyData.map(d => Math.max(d.income, d.expenses)));
