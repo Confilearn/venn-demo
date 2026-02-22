@@ -1,0 +1,112 @@
+You are a Senior React Native + Expo fintech engineer with experience building production-grade banking apps.
+
+Your task is to build a fully functional DEMO mobile app for a fintech startup called "Venn", based on their web dashboard (venn.ca).
+
+GOALS:
+- This app is meant to impress the CEO and qualify me for a full-time Expo developer role.
+- The app must feel real, production-ready, and thoughtfully architected.
+- Use Expo (latest), TypeScript, Expo Router, and modern best practices.
+
+TECH STACK:
+- Expo (SDK latest)
+- Expo Router (file-based routing)
+- TypeScript
+- Zustand or Redux Toolkit (state)
+- React Query (server state)
+- Expo SecureStore (tokens)
+- Reanimated + Gesture Handler
+- Expo Haptics
+- Expo Blur
+- Tailwind (NativeWind) OR styled-components
+- Mock API layer (simulate backend responses cleanly)
+
+APP STRUCTURE:
+- Auth Flow (Login, Signup, Forgot Password)
+- Main App with Bottom Tabs + nested stacks
+- Clean folder structure
+- Reusable components
+- Strong separation of concerns
+
+CORE PAGES (MATCH WEB DASHBOARD):
+1. Dashboard
+   - Account balance (multi-currency)
+   - Recent transactions
+   - Quick actions (Add money, Send money, Convert money, Earn $500)
+   - Analytics card (cashflow summary)
+
+2. Transactions
+   - Filterable transaction list
+   - Status (pending, completed, failed)
+   - Transaction detail screen
+
+3. Accounts
+   - Multiple accounts (USD, CAD, EUR)
+   - Account detail view
+   - Copy account details
+
+4. Transfers
+   - Send money (internal & external)
+   - Beneficiary management
+   - Transfer confirmation & success screen
+
+5. Invoices
+   - Create invoice
+   - Invoice list
+   - Invoice status (paid, unpaid)
+   - Invoice preview screen
+
+6. Cards
+   - Virtual card UI
+   - Freeze/unfreeze card
+   - Card details (masked PAN)
+
+7. Investments
+   - Portfolio overview
+   - Dummy assets
+   - ROI visualization
+
+8. Loans
+   - Loan offers
+   - Active loans
+   - Repayment schedule
+
+9. Accounting
+   - Income vs expenses
+   - Export data (mock)
+   - Monthly summary
+
+10. Profile & Settings
+   - Personal info
+   - Security
+   - Logout
+
+FUNCTIONAL REQUIREMENTS:
+- Fully interactive UI (no dead buttons)
+- Mock API responses using services layer
+- Proper loading, error, and empty states
+- Realistic fintech UX patterns
+- Dark mode support
+- Haptic feedback on key actions
+- Skeleton loaders
+
+DESIGN:
+- Minimal, modern fintech design
+- Clean typography
+- Soft shadows
+- Subtle animations
+- iOS-first polish, Android compatible
+
+DELIVERABLES:
+- Step-by-step build plan
+- Folder structure
+- Key screen implementations
+- Navigation setup
+- State management example
+- Mock API services
+- Reusable components
+- Best practices explanation
+
+IMPORTANT:
+- Write real code, not pseudo-code
+- Explain architectural decisions
+- Optimize for scalability and maintainability
