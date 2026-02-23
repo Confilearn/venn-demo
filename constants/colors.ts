@@ -58,3 +58,7 @@ export type ThemeColors = typeof Colors.dark;
 export function useThemeColors(scheme: 'light' | 'dark' | null | undefined): ThemeColors {
   return scheme === 'light' ? Colors.light : Colors.dark;
 }
+
+export function getThemeColors(scheme: 'light' | 'dark'): ThemeColors {
+  return scheme === 'light' ? Colors.light : Colors.dark;
+}
