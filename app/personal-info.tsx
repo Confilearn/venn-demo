@@ -8,6 +8,8 @@ import {
   Switch,
   Alert,
   Pressable,
+  TextInput,
+  Modal,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +18,7 @@ import * as Haptics from "expo-haptics";
 import { useThemeColors } from "@/constants/colors";
 import { useTheme } from "@/lib/theme-context";
 import { useToast } from "@/lib/toast-context";
+import { Stack } from "expo-router";
 
 export default function PersonalInfoScreen() {
   const { scheme } = useTheme();
@@ -38,6 +41,12 @@ export default function PersonalInfoScreen() {
     ssnLast4: "6789",
   });
 
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editField, setEditField] = useState<string>("");
+  const [editValue, setEditValue] = useState<string>("");
+  const [tempPersonalInfo, setTempPersonalInfo] = useState(personalInfo);
+  const [hasChanges, setHasChanges] = useState(false);
+
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     smsNotifications: true,
@@ -53,8 +62,45 @@ export default function PersonalInfoScreen() {
   });
 
   const handleSave = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    showToast("Personal information updated successfully", "success");
+    if (hasChanges) {
+      setPersonalInfo(tempPersonalInfo);
+      setHasChanges(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast("Personal information updated successfully", "success");
+    }
+  };
+
+  const handleEditField = (field: string, currentValue: string) => {
+    setEditField(field);
+    setEditValue(currentValue);
+    setEditModalVisible(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleSaveEdit = () => {
+    if (editValue.trim()) {
+      setTempPersonalInfo((prev) => ({ ...prev, [editField]: editValue }));
+      setHasChanges(true);
+      setEditModalVisible(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast(
+        `${editField.replace(/([A-Z])/g, " $1").trim()} updated`,
+        "success",
+      );
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditModalVisible(false);
+    setEditField("");
+    setEditValue("");
+  };
+
+  const handleDiscardChanges = () => {
+    setTempPersonalInfo(personalInfo);
+    setHasChanges(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    showToast("Changes discarded", "info");
   };
 
   const handleToggleNotification = (key: string, value: boolean) => {
@@ -67,67 +113,96 @@ export default function PersonalInfoScreen() {
     setSecurity((prev) => ({ ...prev, [key]: value }));
   };
 
-  const InfoCard = ({
-    title,
-    children,
+  const EditableField = ({
+    label,
+    value,
+    field,
     icon,
   }: {
-    title: string;
-    children: React.ReactNode;
+    label: string;
+    value: string;
+    field: string;
     icon: string;
   }) => (
-    <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-      <View style={styles.cardHeader}>
+    <Pressable
+      style={styles.editableField}
+      onPress={() => handleEditField(field, value)}
+    >
+      <View style={styles.fieldLeft}>
         <View
-          style={[styles.cardIcon, { backgroundColor: colors.primaryMuted }]}
+          style={[styles.fieldIcon, { backgroundColor: colors.primaryMuted }]}
         >
-          <Feather name={icon as any} size={20} color={colors.primary} />
+          <Feather name={icon as any} size={16} color={colors.primary} />
         </View>
-        <Text
-          style={[
-            styles.cardTitle,
-            { color: colors.text, fontFamily: "DMSans_600SemiBold" },
-          ]}
-        >
-          {title}
+        <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>
+          {label}
         </Text>
       </View>
-      {children}
-    </View>
+      <View style={styles.fieldRight}>
+        <Text style={[styles.fieldValue, { color: colors.text }]}>
+          {tempPersonalInfo[field as keyof typeof tempPersonalInfo]}
+        </Text>
+        <Feather name="edit-2" size={16} color={colors.textTertiary} />
+      </View>
+    </Pressable>
   );
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 10 + webTop }]}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Feather name="x" size={24} color={colors.text} />
-        </Pressable>
-        <Text
-          style={[
-            styles.headerTitle,
-            { color: colors.text, fontFamily: "DMSans_600SemiBold" },
-          ]}
-        >
-          Personal Information
-        </Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 + webTop }]}>
+          <Pressable
+            onPress={() => {
+              if (hasChanges) {
+                Alert.alert(
+                  "Unsaved Changes",
+                  "You have unsaved changes. Are you sure you want to leave?",
+                  [
+                    { text: "Stay", style: "cancel" },
+                    {
+                      text: "Discard",
+                      style: "destructive",
+                      onPress: () => router.back(),
+                    },
+                  ],
+                );
+              } else {
+                router.back();
+              }
+            }}
+            hitSlop={12}
+          >
+            <Feather name="x" size={24} color={colors.text} />
+          </Pressable>
+          <Text
+            style={[
+              styles.headerTitle,
+              { color: colors.text, fontFamily: "DMSans_600SemiBold" },
+            ]}
+          >
+            Personal Information
+          </Text>
+          <View style={{ width: 24 }} />
+        </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        {/* Profile Section */}
-        <InfoCard title="Profile Information" icon="user">
-          <View style={styles.profileSection}>
-            <View style={styles.avatarContainer}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
+        >
+          {/* Profile Header */}
+          <View
+            style={[styles.profileHeader, { backgroundColor: colors.card }]}
+          >
+            <View style={styles.avatarSection}>
               <View
                 style={[styles.avatar, { backgroundColor: colors.primary }]}
               >
                 <Text
                   style={[styles.avatarText, { fontFamily: "DMSans_700Bold" }]}
                 >
-                  CE
+                  {tempPersonalInfo.firstName[0]}
+                  {tempPersonalInfo.lastName[0]}
                 </Text>
               </View>
               <View style={styles.profileInfo}>
@@ -137,7 +212,7 @@ export default function PersonalInfoScreen() {
                     { color: colors.text, fontFamily: "DMSans_600SemiBold" },
                   ]}
                 >
-                  Confidence Ezeorah
+                  {tempPersonalInfo.firstName} {tempPersonalInfo.lastName}
                 </Text>
                 <Text
                   style={[
@@ -148,259 +223,417 @@ export default function PersonalInfoScreen() {
                     },
                   ]}
                 >
-                  confidence@venn.ca
+                  {tempPersonalInfo.email}
                 </Text>
               </View>
             </View>
+            {hasChanges && (
+              <View style={styles.changesIndicator}>
+                <Feather name="alert-circle" size={16} color={colors.warning} />
+                <Text style={[styles.changesText, { color: colors.warning }]}>
+                  Unsaved changes
+                </Text>
+              </View>
+            )}
           </View>
-        </InfoCard>
 
-        {/* Contact Information */}
-        <InfoCard title="Contact Information" icon="mail">
-          <View style={styles.contactGrid}>
-            <View style={styles.contactItem}>
-              <Text
-                style={[
-                  styles.contactLabel,
-                  {
-                    color: colors.textSecondary,
-                    fontFamily: "DMSans_500Medium",
-                  },
-                ]}
-              >
-                Email
-              </Text>
-              <Text
-                style={[
-                  styles.contactValue,
-                  { color: colors.text, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                {personalInfo.email}
-              </Text>
-            </View>
-            <View style={styles.contactItem}>
-              <Text
-                style={[
-                  styles.contactLabel,
-                  {
-                    color: colors.textSecondary,
-                    fontFamily: "DMSans_500Medium",
-                  },
-                ]}
-              >
-                Phone
-              </Text>
-              <Text
-                style={[
-                  styles.contactValue,
-                  { color: colors.text, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                {personalInfo.phone}
-              </Text>
-            </View>
-            <View style={styles.contactItem}>
-              <Text
-                style={[
-                  styles.contactLabel,
-                  {
-                    color: colors.textSecondary,
-                    fontFamily: "DMSans_500Medium",
-                  },
-                ]}
-              >
-                Address
-              </Text>
-              <Text
-                style={[
-                  styles.contactValue,
-                  { color: colors.text, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                {personalInfo.address}
-              </Text>
-            </View>
-          </View>
-        </InfoCard>
-
-        {/* Security Settings */}
-        <InfoCard title="Security Settings" icon="shield">
-          <View style={styles.settingsGrid}>
-            <View style={styles.settingItem}>
-              <Text
-                style={[
-                  styles.settingLabel,
-                  { color: colors.text, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                Two-Factor Auth
-              </Text>
-              <Switch
-                value={security.twoFactorEnabled}
-                onValueChange={() =>
-                  handleToggleSecurity(
-                    "twoFactorEnabled",
-                    !security.twoFactorEnabled,
-                  )
-                }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-            <View style={styles.settingItem}>
-              <Text
-                style={[
-                  styles.settingLabel,
-                  { color: colors.text, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                Biometric Login
-              </Text>
-              <Switch
-                value={security.biometricEnabled}
-                onValueChange={() =>
-                  handleToggleSecurity(
-                    "biometricEnabled",
-                    !security.biometricEnabled,
-                  )
-                }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-            <View style={styles.settingItem}>
-              <Text
-                style={[
-                  styles.settingLabel,
-                  { color: colors.text, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                Login Alerts
-              </Text>
-              <Switch
-                value={security.loginAlerts}
-                onValueChange={() =>
-                  handleToggleSecurity("loginAlerts", !security.loginAlerts)
-                }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-          </View>
-        </InfoCard>
-
-        {/* Notification Preferences */}
-        <InfoCard title="Notification Preferences" icon="bell">
-          <View style={styles.settingsGrid}>
-            <View style={styles.settingItem}>
-              <Text
-                style={[
-                  styles.settingLabel,
-                  { color: colors.text, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                Email Notifications
-              </Text>
-              <Switch
-                value={notifications.emailNotifications}
-                onValueChange={() =>
-                  handleToggleNotification(
-                    "emailNotifications",
-                    !notifications.emailNotifications,
-                  )
-                }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-            <View style={styles.settingItem}>
-              <Text
-                style={[
-                  styles.settingLabel,
-                  { color: colors.text, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                SMS Notifications
-              </Text>
-              <Switch
-                value={notifications.smsNotifications}
-                onValueChange={() =>
-                  handleToggleNotification(
-                    "smsNotifications",
-                    !notifications.smsNotifications,
-                  )
-                }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-            <View style={styles.settingItem}>
-              <Text
-                style={[
-                  styles.settingLabel,
-                  { color: colors.text, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                Push Notifications
-              </Text>
-              <Switch
-                value={notifications.pushNotifications}
-                onValueChange={() =>
-                  handleToggleNotification(
-                    "pushNotifications",
-                    !notifications.pushNotifications,
-                  )
-                }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-            <View style={styles.settingItem}>
-              <Text
-                style={[
-                  styles.settingLabel,
-                  { color: colors.text, fontFamily: "DMSans_500Medium" },
-                ]}
-              >
-                Marketing Emails
-              </Text>
-              <Switch
-                value={notifications.marketingEmails}
-                onValueChange={() =>
-                  handleToggleNotification(
-                    "marketingEmails",
-                    !notifications.marketingEmails,
-                  )
-                }
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-          </View>
-        </InfoCard>
-
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.saveBtn,
-              { backgroundColor: colors.primary, opacity: pressed ? 0.9 : 1 },
-            ]}
-            onPress={handleSave}
-          >
-            <Text
-              style={[
-                styles.saveBtnText,
-                { color: "#fff", fontFamily: "DMSans_600SemiBold" },
-              ]}
-            >
-              Save Changes
+          {/* Personal Information Section */}
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Personal Information
             </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </View>
+            <View style={styles.fieldsContainer}>
+              <EditableField
+                label="First Name"
+                value={tempPersonalInfo.firstName}
+                field="firstName"
+                icon="user"
+              />
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <EditableField
+                label="Last Name"
+                value={tempPersonalInfo.lastName}
+                field="lastName"
+                icon="user"
+              />
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <EditableField
+                label="Date of Birth"
+                value={tempPersonalInfo.dateOfBirth}
+                field="dateOfBirth"
+                icon="calendar"
+              />
+            </View>
+          </View>
+
+          {/* Contact Information Section */}
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Contact Information
+            </Text>
+            <View style={styles.fieldsContainer}>
+              <EditableField
+                label="Email Address"
+                value={tempPersonalInfo.email}
+                field="email"
+                icon="mail"
+              />
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <EditableField
+                label="Phone Number"
+                value={tempPersonalInfo.phone}
+                field="phone"
+                icon="phone"
+              />
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <EditableField
+                label="Address"
+                value={tempPersonalInfo.address}
+                field="address"
+                icon="home"
+              />
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <EditableField
+                label="City"
+                value={tempPersonalInfo.city}
+                field="city"
+                icon="map-pin"
+              />
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <EditableField
+                label="State/Province"
+                value={tempPersonalInfo.state}
+                field="state"
+                icon="map"
+              />
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <EditableField
+                label="ZIP/Postal Code"
+                value={tempPersonalInfo.zipCode}
+                field="zipCode"
+                icon="package"
+              />
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <EditableField
+                label="Country"
+                value={tempPersonalInfo.country}
+                field="country"
+                icon="globe"
+              />
+            </View>
+          </View>
+
+          {/* Security Settings */}
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Security Settings
+            </Text>
+            <View style={styles.settingsContainer}>
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Feather name="shield" size={20} color={colors.primary} />
+                  <Text style={[styles.settingLabel, { color: colors.text }]}>
+                    Two-Factor Authentication
+                  </Text>
+                </View>
+                <Switch
+                  value={security.twoFactorEnabled}
+                  onValueChange={() =>
+                    handleToggleSecurity(
+                      "twoFactorEnabled",
+                      !security.twoFactorEnabled,
+                    )
+                  }
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Feather name="user" size={20} color={colors.primary} />
+                  <Text style={[styles.settingLabel, { color: colors.text }]}>
+                    Biometric Login
+                  </Text>
+                </View>
+                <Switch
+                  value={security.biometricEnabled}
+                  onValueChange={() =>
+                    handleToggleSecurity(
+                      "biometricEnabled",
+                      !security.biometricEnabled,
+                    )
+                  }
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Feather name="bell" size={20} color={colors.primary} />
+                  <Text style={[styles.settingLabel, { color: colors.text }]}>
+                    Login Alerts
+                  </Text>
+                </View>
+                <Switch
+                  value={security.loginAlerts}
+                  onValueChange={() =>
+                    handleToggleSecurity("loginAlerts", !security.loginAlerts)
+                  }
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Notification Preferences */}
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Notification Preferences
+            </Text>
+            <View style={styles.settingsContainer}>
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Feather name="mail" size={20} color={colors.primary} />
+                  <Text style={[styles.settingLabel, { color: colors.text }]}>
+                    Email Notifications
+                  </Text>
+                </View>
+                <Switch
+                  value={notifications.emailNotifications}
+                  onValueChange={() =>
+                    handleToggleNotification(
+                      "emailNotifications",
+                      !notifications.emailNotifications,
+                    )
+                  }
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Feather
+                    name="message-square"
+                    size={20}
+                    color={colors.primary}
+                  />
+                  <Text style={[styles.settingLabel, { color: colors.text }]}>
+                    SMS Notifications
+                  </Text>
+                </View>
+                <Switch
+                  value={notifications.smsNotifications}
+                  onValueChange={() =>
+                    handleToggleNotification(
+                      "smsNotifications",
+                      !notifications.smsNotifications,
+                    )
+                  }
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Feather name="smartphone" size={20} color={colors.primary} />
+                  <Text style={[styles.settingLabel, { color: colors.text }]}>
+                    Push Notifications
+                  </Text>
+                </View>
+                <Switch
+                  value={notifications.pushNotifications}
+                  onValueChange={() =>
+                    handleToggleNotification(
+                      "pushNotifications",
+                      !notifications.pushNotifications,
+                    )
+                  }
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+              <View
+                style={[styles.divider, { backgroundColor: colors.border }]}
+              />
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Feather name="tag" size={20} color={colors.primary} />
+                  <Text style={[styles.settingLabel, { color: colors.text }]}>
+                    Marketing Emails
+                  </Text>
+                </View>
+                <Switch
+                  value={notifications.marketingEmails}
+                  onValueChange={() =>
+                    handleToggleNotification(
+                      "marketingEmails",
+                      !notifications.marketingEmails,
+                    )
+                  }
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            {hasChanges && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.discardBtn,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                    opacity: pressed ? 0.9 : 1,
+                  },
+                ]}
+                onPress={handleDiscardChanges}
+              >
+                <Text
+                  style={[
+                    styles.discardBtnText,
+                    {
+                      color: colors.textSecondary,
+                      fontFamily: "DMSans_600SemiBold",
+                    },
+                  ]}
+                >
+                  Discard Changes
+                </Text>
+              </Pressable>
+            )}
+            <Pressable
+              style={({ pressed }) => [
+                styles.saveBtn,
+                {
+                  backgroundColor: hasChanges ? colors.primary : colors.surface,
+                  borderColor: hasChanges ? colors.primary : colors.border,
+                  borderWidth: 1,
+                  opacity: pressed ? 0.9 : 1,
+                },
+              ]}
+              onPress={handleSave}
+              disabled={!hasChanges}
+            >
+              <Text
+                style={[
+                  styles.saveBtnText,
+                  {
+                    color: hasChanges ? "#fff" : colors.textTertiary,
+                    fontFamily: "DMSans_600SemiBold",
+                  },
+                ]}
+              >
+                {hasChanges ? "Save Changes" : "No Changes"}
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+
+        {/* Edit Modal */}
+        <Modal
+          visible={editModalVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={handleCancelEdit}
+        >
+          <View style={styles.modalOverlay}>
+            <View
+              style={[styles.modalContent, { backgroundColor: colors.card }]}
+            >
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>
+                  Edit {editField.replace(/([A-Z])/g, " $1").trim()}
+                </Text>
+                <Pressable onPress={handleCancelEdit} hitSlop={12}>
+                  <Feather name="x" size={24} color={colors.textSecondary} />
+                </Pressable>
+              </View>
+              <TextInput
+                style={[
+                  styles.modalInput,
+                  {
+                    color: colors.text,
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
+                ]}
+                value={editValue}
+                onChangeText={setEditValue}
+                placeholder={`Enter ${editField
+                  .replace(/([A-Z])/g, " $1")
+                  .trim()
+                  .toLowerCase()}`}
+                placeholderTextColor={colors.textTertiary}
+                autoFocus
+                multiline={editField === "address"}
+              />
+              <View style={styles.modalButtons}>
+                <Pressable
+                  style={[
+                    styles.modalCancelBtn,
+                    { backgroundColor: colors.surface },
+                  ]}
+                  onPress={handleCancelEdit}
+                >
+                  <Text
+                    style={[
+                      styles.modalCancelBtnText,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    Cancel
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.modalSaveBtn,
+                    { backgroundColor: colors.primary },
+                  ]}
+                  onPress={handleSaveEdit}
+                >
+                  <Text style={[styles.modalSaveBtnText, { color: "#fff" }]}>
+                    Save
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </>
   );
 }
 
@@ -415,106 +648,216 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 17 },
   content: { paddingHorizontal: 20, paddingBottom: 40 },
-  infoCard: {
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  cardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cardTitle: {
-    fontSize: 16,
-  },
-  profileSection: {
-    alignItems: "center",
+
+  // Profile Header
+  profileHeader: {
+    borderRadius: 20,
+    padding: 24,
     marginBottom: 20,
   },
-  avatarContainer: {
+  avatarSection: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    marginBottom: 16,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 16,
   },
   avatarText: {
     color: "#fff",
-    fontSize: 20,
-    fontFamily: "DMSans_700Bold",
+    fontSize: 28,
   },
   profileInfo: {
-    alignItems: "flex-start",
+    flex: 1,
   },
   profileName: {
-    fontSize: 18,
-    fontFamily: "DMSans_600SemiBold",
+    fontSize: 24,
+    marginBottom: 4,
   },
   profileEmail: {
     fontSize: 14,
-    fontFamily: "DMSans_400Regular",
-    marginTop: 4,
   },
-  contactGrid: {
-    gap: 16,
+  changesIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 176, 32, 0.1)",
   },
-  contactItem: {
+  changesText: {
+    fontSize: 12,
+    fontFamily: "DMSans_500Medium",
+  },
+
+  // Sections
+  section: {
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: "DMSans_600SemiBold",
+    marginBottom: 16,
+  },
+  fieldsContainer: {
+    gap: 2,
+  },
+
+  // Editable Fields
+  editableField: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 12,
-    borderRadius: 12,
+    paddingHorizontal: 4,
   },
-  contactLabel: {
+  fieldLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  fieldIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fieldLabel: {
     fontSize: 14,
     fontFamily: "DMSans_500Medium",
-    minWidth: 80,
   },
-  contactValue: {
+  fieldRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  fieldValue: {
     fontSize: 14,
     fontFamily: "DMSans_500Medium",
     flex: 1,
     textAlign: "right",
+    overflow: "hidden",
   },
-  settingsGrid: {
-    gap: 16,
+
+  // Settings
+  settingsContainer: {
+    gap: 2,
   },
   settingItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 12,
-    borderRadius: 12,
+    paddingHorizontal: 4,
+  },
+  settingLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
   },
   settingLabel: {
     fontSize: 14,
     fontFamily: "DMSans_500Medium",
     flex: 1,
   },
+
+  // Divider
+  divider: {
+    height: 1,
+    marginHorizontal: 4,
+  },
+
+  // Action Buttons
   actionButtons: {
     paddingHorizontal: 20,
     paddingBottom: 40,
+    gap: 12,
   },
   saveBtn: {
-    borderRadius: 14,
+    borderRadius: 16,
     paddingVertical: 16,
     alignItems: "center",
   },
   saveBtnText: {
     fontSize: 16,
+  },
+  discardBtn: {
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  discardBtnText: {
+    fontSize: 16,
+  },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    borderRadius: 20,
+    padding: 24,
+    width: "100%",
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: "DMSans_600SemiBold",
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 20,
+    minHeight: 48,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  modalCancelBtnText: {
+    fontSize: 14,
+    fontFamily: "DMSans_600SemiBold",
+  },
+  modalSaveBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  modalSaveBtnText: {
+    fontSize: 14,
     fontFamily: "DMSans_600SemiBold",
   },
 });
