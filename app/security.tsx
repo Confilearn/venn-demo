@@ -13,6 +13,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useThemeColors } from "@/constants/colors";
 import { useTheme } from "@/lib/theme-context";
+import { Stack } from "expo-router";
 
 export default function SecurityScreen() {
   const { scheme } = useTheme();
@@ -48,93 +49,96 @@ export default function SecurityScreen() {
   ];
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 10 + webTop }]}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Feather name="x" size={24} color={colors.text} />
-        </Pressable>
-        <Text
-          style={[
-            styles.headerTitle,
-            { color: colors.text, fontFamily: "DMSans_600SemiBold" },
-          ]}
-        >
-          Security
-        </Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 + webTop }]}>
+          <Pressable onPress={() => router.back()} hitSlop={12}>
+            <Feather name="x" size={24} color={colors.text} />
+          </Pressable>
+          <Text
+            style={[
+              styles.headerTitle,
+              { color: colors.text, fontFamily: "DMSans_600SemiBold" },
+            ]}
+          >
+            Security
+          </Text>
+          <View style={{ width: 24 }} />
+        </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        <Text
-          style={[
-            styles.sectionTitle,
-            { color: colors.text, fontFamily: "DMSans_600SemiBold" },
-          ]}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
         >
-          Security Features
-        </Text>
+          <Text
+            style={[
+              styles.sectionTitle,
+              { color: colors.text, fontFamily: "DMSans_600SemiBold" },
+            ]}
+          >
+            Security Features
+          </Text>
 
-        {securityFeatures.map((feature, index) => (
-          <View key={index} style={styles.featureCard}>
-            <View style={styles.featureHeader}>
-              <View
-                style={[
-                  styles.featureIcon,
-                  { backgroundColor: colors.primaryMuted },
-                ]}
-              >
-                <Feather
-                  name={feature.icon as any}
-                  size={20}
-                  color={colors.primary}
-                />
-              </View>
-              <View style={styles.featureInfo}>
-                <Text
+          {securityFeatures.map((feature, index) => (
+            <View key={index} style={styles.featureCard}>
+              <View style={styles.featureHeader}>
+                <View
                   style={[
-                    styles.featureTitle,
-                    { color: colors.text, fontFamily: "DMSans_600SemiBold" },
+                    styles.featureIcon,
+                    { backgroundColor: colors.primaryMuted },
                   ]}
                 >
-                  {feature.title}
-                </Text>
-                <Text
-                  style={[
-                    styles.featureDesc,
-                    {
-                      color: colors.textSecondary,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
-                >
-                  {feature.description}
-                </Text>
-              </View>
-              <View style={styles.featureStatus}>
-                <Text
-                  style={[
-                    styles.statusBadge,
-                    {
-                      backgroundColor:
-                        feature.status === "enabled"
-                          ? colors.success
-                          : colors.card,
-                      color:
-                        feature.status === "enabled" ? "#fff" : colors.text,
-                    },
-                  ]}
-                >
-                  {feature.status}
-                </Text>
+                  <Feather
+                    name={feature.icon as any}
+                    size={20}
+                    color={colors.primary}
+                  />
+                </View>
+                <View style={styles.featureInfo}>
+                  <Text
+                    style={[
+                      styles.featureTitle,
+                      { color: colors.text, fontFamily: "DMSans_600SemiBold" },
+                    ]}
+                  >
+                    {feature.title}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.featureDesc,
+                      {
+                        color: colors.textSecondary,
+                        fontFamily: "DMSans_400Regular",
+                      },
+                    ]}
+                  >
+                    {feature.description}
+                  </Text>
+                </View>
+                <View style={styles.featureStatus}>
+                  <Text
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor:
+                          feature.status === "enabled"
+                            ? colors.success
+                            : colors.card,
+                        color:
+                          feature.status === "enabled" ? "#fff" : colors.text,
+                      },
+                    ]}
+                  >
+                    {feature.status}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
-    </View>
+          ))}
+        </ScrollView>
+      </View>
+    </>
   );
 }
 

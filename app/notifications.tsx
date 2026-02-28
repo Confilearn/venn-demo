@@ -14,6 +14,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useThemeColors } from "@/constants/colors";
 import { useTheme } from "@/lib/theme-context";
+import { Stack } from "expo-router";
 
 export default function NotificationsScreen() {
   const { scheme } = useTheme();
@@ -72,84 +73,87 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + 10 + webTop }]}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Feather name="x" size={24} color={colors.text} />
-        </Pressable>
-        <Text
-          style={[
-            styles.headerTitle,
-            { color: colors.text, fontFamily: "DMSans_600SemiBold" },
-          ]}
-        >
-          Notifications
-        </Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 + webTop }]}>
+          <Pressable onPress={() => router.back()} hitSlop={12}>
+            <Feather name="x" size={24} color={colors.text} />
+          </Pressable>
+          <Text
+            style={[
+              styles.headerTitle,
+              { color: colors.text, fontFamily: "DMSans_600SemiBold" },
+            ]}
+          >
+            Notifications
+          </Text>
+          <View style={{ width: 24 }} />
+        </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        <Text
-          style={[
-            styles.sectionTitle,
-            { color: colors.text, fontFamily: "DMSans_600SemiBold" },
-          ]}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
         >
-          Notification Preferences
-        </Text>
+          <Text
+            style={[
+              styles.sectionTitle,
+              { color: colors.text, fontFamily: "DMSans_600SemiBold" },
+            ]}
+          >
+            Notification Preferences
+          </Text>
 
-        {notificationTypes.map((type) => (
-          <View key={type.id} style={styles.notificationItem}>
-            <View style={styles.notificationHeader}>
-              <View
-                style={[
-                  styles.notificationIcon,
-                  { backgroundColor: colors.primaryMuted },
-                ]}
-              >
-                <Feather
-                  name={type.icon as any}
-                  size={20}
-                  color={colors.primary}
+          {notificationTypes.map((type) => (
+            <View key={type.id} style={styles.notificationItem}>
+              <View style={styles.notificationHeader}>
+                <View
+                  style={[
+                    styles.notificationIcon,
+                    { backgroundColor: colors.primaryMuted },
+                  ]}
+                >
+                  <Feather
+                    name={type.icon as any}
+                    size={20}
+                    color={colors.primary}
+                  />
+                </View>
+                <View style={styles.notificationInfo}>
+                  <Text
+                    style={[
+                      styles.notificationTitle,
+                      { color: colors.text, fontFamily: "DMSans_600SemiBold" },
+                    ]}
+                  >
+                    {type.title}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.notificationDesc,
+                      {
+                        color: colors.textSecondary,
+                        fontFamily: "DMSans_400Regular",
+                      },
+                    ]}
+                  >
+                    {type.description}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.notificationToggle}>
+                <Switch
+                  value={notifications[type.id as keyof typeof notifications]}
+                  onValueChange={() => handleToggle(type.id)}
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor="#fff"
                 />
               </View>
-              <View style={styles.notificationInfo}>
-                <Text
-                  style={[
-                    styles.notificationTitle,
-                    { color: colors.text, fontFamily: "DMSans_600SemiBold" },
-                  ]}
-                >
-                  {type.title}
-                </Text>
-                <Text
-                  style={[
-                    styles.notificationDesc,
-                    {
-                      color: colors.textSecondary,
-                      fontFamily: "DMSans_400Regular",
-                    },
-                  ]}
-                >
-                  {type.description}
-                </Text>
-              </View>
             </View>
-            <View style={styles.notificationToggle}>
-              <Switch
-                value={notifications[type.id as keyof typeof notifications]}
-                onValueChange={() => handleToggle(type.id)}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-    </View>
+          ))}
+        </ScrollView>
+      </View>
+    </>
   );
 }
 
