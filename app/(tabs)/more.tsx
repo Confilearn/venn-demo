@@ -265,16 +265,6 @@ export default function MoreScreen() {
               router.push("/notifications");
             }}
           />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem
-            icon="help-circle"
-            label="Help & Support"
-            color={colors.textSecondary}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push("/help-support");
-            }}
-          />
         </View>
 
         <Pressable
