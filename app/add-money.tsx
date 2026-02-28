@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,
+    width: "100%",
   },
   btnText: { fontSize: 16 },
   successContainer: { alignItems: "center", paddingTop: 60 },
