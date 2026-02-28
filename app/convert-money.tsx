@@ -16,12 +16,13 @@ import * as Haptics from "expo-haptics";
 import { useThemeColors } from "@/constants/colors";
 import { useTheme } from "@/lib/theme-context";
 import { formatCurrency } from "@/lib/mock-data";
+import CurrencyModal from "@/components/CurrencyModal";
 
 const currencies = [
-  { code: "USD", name: "US Dollar", rate: 1.0 },
-  { code: "CAD", name: "Canadian Dollar", rate: 1.36 },
-  { code: "EUR", name: "Euro", rate: 0.92 },
-  { code: "GBP", name: "British Pound", rate: 0.79 },
+  { code: "USD", name: "US Dollar", rate: 1.0, symbol: "$" },
+  { code: "CAD", name: "Canadian Dollar", rate: 1.36, symbol: "C$" },
+  { code: "EUR", name: "Euro", rate: 0.92, symbol: "€" },
+  { code: "GBP", name: "British Pound", rate: 0.79, symbol: "£" },
 ];
 
 export default function ConvertMoneyScreen() {
@@ -34,6 +35,8 @@ export default function ConvertMoneyScreen() {
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showFromModal, setShowFromModal] = useState(false);
+  const [showToModal, setShowToModal] = useState(false);
 
   const convertedAmount = amount
     ? parseFloat(amount) * (toCurrency.rate / fromCurrency.rate)
@@ -169,7 +172,7 @@ export default function ConvertMoneyScreen() {
               ]}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/currency-selector?from=true");
+                setShowFromModal(true);
               }}
             >
               <Text
@@ -230,7 +233,7 @@ export default function ConvertMoneyScreen() {
               ]}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push("/currency-selector?from=false");
+                setShowToModal(true);
               }}
             >
               <Text
@@ -285,6 +288,21 @@ export default function ConvertMoneyScreen() {
           )}
         </Pressable>
       </ScrollView>
+
+      {/* Currency Modals */}
+      <CurrencyModal
+        visible={showFromModal}
+        onClose={() => setShowFromModal(false)}
+        onSelect={(currency) => setFromCurrency(currency)}
+        title="Select From Currency"
+      />
+
+      <CurrencyModal
+        visible={showToModal}
+        onClose={() => setShowToModal(false)}
+        onSelect={(currency) => setToCurrency(currency)}
+        title="Select To Currency"
+      />
     </View>
   );
 }
