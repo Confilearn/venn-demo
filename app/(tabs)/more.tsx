@@ -223,26 +223,6 @@ export default function MoreScreen() {
           />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem
-            icon="trending-up"
-            label="Investments"
-            color="#FF6B8A"
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push("/investments");
-            }}
-          />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem
-            icon="dollar-sign"
-            label="Loans"
-            color={colors.warning}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push("/loans");
-            }}
-          />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem
             icon="bar-chart-2"
             label="Accounting"
             color={colors.primary}
