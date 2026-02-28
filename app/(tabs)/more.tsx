@@ -94,7 +94,7 @@ function MenuItem({
   badge?: string;
   onPress: () => void;
 }) {
-  const scheme = useColorScheme();
+  const { scheme } = useTheme();
   const colors = useThemeColors(scheme);
   return (
     <Pressable
@@ -129,7 +129,7 @@ function MenuItem({
 }
 
 export default function MoreScreen() {
-  const scheme = useColorScheme();
+  const { scheme } = useTheme();
   const colors = useThemeColors(scheme);
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();

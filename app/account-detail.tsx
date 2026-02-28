@@ -5,7 +5,6 @@ import {
   ScrollView,
   Pressable,
   StyleSheet,
-  useColorScheme,
   Platform,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -14,10 +13,11 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from "expo-clipboard";
 import { useThemeColors } from "@/constants/colors";
+import { useTheme } from "@/lib/theme-context";
 import { accounts, formatCurrency } from "@/lib/mock-data";
 
 export default function AccountDetailScreen() {
-  const scheme = useColorScheme();
+  const { scheme } = useTheme();
   const colors = useThemeColors(scheme);
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();

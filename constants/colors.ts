@@ -58,6 +58,7 @@ export type ThemeColors = typeof Colors.dark;
 export function useThemeColors(
   scheme: "light" | "dark" | null | undefined,
 ): ThemeColors {
+  if (!scheme) return Colors.dark; // Default to dark theme if no scheme
   return scheme === "light" ? Colors.light : Colors.dark;
 }
 

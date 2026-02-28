@@ -5,7 +5,6 @@ import {
   ScrollView,
   Pressable,
   StyleSheet,
-  useColorScheme,
   Platform,
   Switch,
   Alert,
@@ -21,6 +20,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { useThemeColors } from "@/constants/colors";
+import { useTheme } from "@/lib/theme-context";
 import { useToast } from "@/lib/toast-context";
 import { cards, formatCurrency } from "@/lib/mock-data";
 
@@ -33,7 +33,7 @@ function CardVisual({
   isActive: boolean;
   onPress: () => void;
 }) {
-  const scheme = useColorScheme();
+  const { scheme } = useTheme();
   const colors = useThemeColors(scheme);
   const scale = useSharedValue(1);
 
@@ -161,7 +161,7 @@ function CardVisual({
 }
 
 export default function CardsScreen() {
-  const scheme = useColorScheme();
+  const { scheme } = useTheme();
   const colors = useThemeColors(scheme);
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();

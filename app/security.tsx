@@ -18,6 +18,8 @@ import { useTheme } from "@/lib/theme-context";
 import { Stack } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 
+// Security screen with enhanced UI/UX and theme support
+
 export default function SecurityScreen() {
   const { scheme } = useTheme();
   const colors = useThemeColors(scheme);
