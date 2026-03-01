@@ -1,12 +1,23 @@
-import React, { createContext, useContext, useState, useMemo, ReactNode, useCallback, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useColorScheme as useSystemColorScheme } from 'react-native';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  ReactNode,
+  useCallback,
+  useEffect,
+} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  useColorScheme as useSystemColorScheme,
+  Appearance,
+} from "react-native";
 
-type ThemeMode = 'light' | 'dark' | 'system';
+type ThemeMode = "light" | "dark" | "system";
 
 interface ThemeContextValue {
   mode: ThemeMode;
-  scheme: 'light' | 'dark';
+  scheme: "light" | "dark";
   setMode: (mode: ThemeMode) => void;
 }
 
@@ -14,30 +25,51 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemScheme = useSystemColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>('system');
+  const [mode, setModeState] = useState<ThemeMode>("system");
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem('venn_theme').then((val) => {
-      if (val === 'light' || val === 'dark' || val === 'system') setModeState(val);
-      setLoaded(true);
-    }).catch(() => setLoaded(true));
+    AsyncStorage.getItem("venn_theme")
+      .then((val) => {
+        if (val === "light" || val === "dark" || val === "system")
+          setModeState(val);
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
   }, []);
+
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      // Only trigger if mode is 'system'
+      if (mode === "system") {
+        // Force re-render by updating state
+        setModeState("system");
+      }
+    });
+
+    return () => subscription?.remove();
+  }, [mode]);
 
   const setMode = useCallback((m: ThemeMode) => {
     setModeState(m);
-    AsyncStorage.setItem('venn_theme', m);
+    AsyncStorage.setItem("venn_theme", m);
   }, []);
 
-  const scheme: 'light' | 'dark' = mode === 'system' ? (systemScheme === 'light' ? 'light' : 'dark') : mode;
+  const scheme: "light" | "dark" =
+    mode === "system" ? (systemScheme === "light" ? "light" : "dark") : mode;
 
-  const value = useMemo(() => ({ mode, scheme, setMode }), [mode, scheme, setMode]);
+  const value = useMemo(
+    () => ({ mode, scheme, setMode }),
+    [mode, scheme, setMode],
+  );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
+  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
   return ctx;
 }

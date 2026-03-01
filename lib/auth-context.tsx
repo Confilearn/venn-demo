@@ -1,5 +1,13 @@
-import React, { createContext, useContext, useState, useMemo, ReactNode, useCallback, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  ReactNode,
+  useCallback,
+  useEffect,
+} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface User {
   id: string;
@@ -22,12 +30,12 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const MOCK_USER: User = {
-  id: '1',
-  name: 'Jordan Mitchell',
-  email: 'jordan@venn.ca',
-  avatar: 'JM',
-  phone: '+1 (416) 555-0142',
-  company: 'Mitchell & Co.',
+  id: "1",
+  name: "Confidence Ezeorah",
+  email: "confidence@venn.ca",
+  avatar: "CE",
+  phone: "+1 (416) 555-0142",
+  company: "Venn Technologies",
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -35,45 +43,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    AsyncStorage.getItem('venn_auth').then((val) => {
-      if (val === 'true') setUser(MOCK_USER);
-      setIsLoading(false);
-    }).catch(() => setIsLoading(false));
+    AsyncStorage.getItem("venn_auth")
+      .then((val) => {
+        if (val === "true") setUser(MOCK_USER);
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
   }, []);
 
-  const login = useCallback(async (_email: string, _password: string): Promise<boolean> => {
-    await new Promise(r => setTimeout(r, 800));
-    setUser(MOCK_USER);
-    await AsyncStorage.setItem('venn_auth', 'true');
-    return true;
-  }, []);
+  const login = useCallback(
+    async (_email: string, _password: string): Promise<boolean> => {
+      await new Promise((r) => setTimeout(r, 800));
+      setUser(MOCK_USER);
+      await AsyncStorage.setItem("venn_auth", "true");
+      return true;
+    },
+    [],
+  );
 
-  const signup = useCallback(async (name: string, email: string, _password: string): Promise<boolean> => {
-    await new Promise(r => setTimeout(r, 800));
-    setUser({ ...MOCK_USER, name, email, avatar: name.split(' ').map(n => n[0]).join('').toUpperCase() });
-    await AsyncStorage.setItem('venn_auth', 'true');
-    return true;
-  }, []);
+  const signup = useCallback(
+    async (
+      name: string,
+      email: string,
+      _password: string,
+    ): Promise<boolean> => {
+      await new Promise((r) => setTimeout(r, 800));
+      setUser({
+        ...MOCK_USER,
+        name,
+        email,
+        avatar: name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase(),
+      });
+      await AsyncStorage.setItem("venn_auth", "true");
+      return true;
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     setUser(null);
-    await AsyncStorage.removeItem('venn_auth');
+    await AsyncStorage.removeItem("venn_auth");
   }, []);
 
-  const value = useMemo(() => ({
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    login,
-    signup,
-    logout,
-  }), [user, isLoading, login, signup, logout]);
+  const value = useMemo(
+    () => ({
+      user,
+      isAuthenticated: !!user,
+      isLoading,
+      login,
+      signup,
+      logout,
+    }),
+    [user, isLoading, login, signup, logout],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }

@@ -1,26 +1,125 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, useColorScheme, Platform, Alert } from 'react-native';
-import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { useThemeColors } from '@/constants/colors';
-import { useAuth } from '@/lib/auth-context';
-import { invoices, formatCurrency } from '@/lib/mock-data';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  StyleSheet,
+  useColorScheme,
+  Platform,
+  Alert,
+  Switch,
+} from "react-native";
+import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useThemeColors } from "@/constants/colors";
+import { useTheme } from "@/lib/theme-context";
+import { useAuth } from "@/lib/auth-context";
+import { invoices, formatCurrency } from "@/lib/mock-data";
 
-function MenuItem({ icon, label, color, badge, onPress }: { icon: string; label: string; color: string; badge?: string; onPress: () => void }) {
-  const scheme = useColorScheme();
+function ThemeToggleItem() {
+  const { mode, scheme, setMode } = useTheme();
+  const colors = useThemeColors(scheme);
+
+  const handleThemeChange = (newMode: "light" | "dark" | "system") => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setMode(newMode);
+  };
+
+  return (
+    <View style={[styles.menuItem, { backgroundColor: "transparent" }]}>
+      <View style={[styles.menuIcon, { backgroundColor: colors.accentMuted }]}>
+        <Feather name="moon" size={18} color={colors.accent} />
+      </View>
+      <Text
+        style={[
+          styles.menuLabel,
+          { color: colors.text, fontFamily: "DMSans_500Medium" },
+        ]}
+      >
+        Theme
+      </Text>
+      <View style={styles.themeToggleContainer}>
+        <View
+          style={[
+            styles.themeButtons,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          {(["light", "dark", "system"] as const).map((themeMode) => (
+            <Pressable
+              key={themeMode}
+              style={[
+                styles.themeButton,
+                {
+                  backgroundColor:
+                    mode === themeMode ? colors.primary : colors.card,
+                },
+              ]}
+              onPress={() => handleThemeChange(themeMode)}
+            >
+              <Text
+                style={[
+                  styles.themeButtonText,
+                  {
+                    color: mode === themeMode ? "#fff" : colors.textSecondary,
+                    fontFamily: "DMSans_500Medium",
+                  },
+                ]}
+              >
+                {themeMode === "system"
+                  ? "Auto"
+                  : themeMode.charAt(0).toUpperCase() + themeMode.slice(1)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function MenuItem({
+  icon,
+  label,
+  color,
+  badge,
+  onPress,
+}: {
+  icon: string;
+  label: string;
+  color: string;
+  badge?: string;
+  onPress: () => void;
+}) {
+  const { scheme } = useTheme();
   const colors = useThemeColors(scheme);
   return (
-    <Pressable style={({ pressed }) => [styles.menuItem, { opacity: pressed ? 0.7 : 1 }]} onPress={onPress}>
-      <View style={[styles.menuIcon, { backgroundColor: color + '20' }]}>
+    <Pressable
+      style={({ pressed }) => [styles.menuItem, { opacity: pressed ? 0.7 : 1 }]}
+      onPress={onPress}
+    >
+      <View style={[styles.menuIcon, { backgroundColor: color + "20" }]}>
         <Feather name={icon as any} size={18} color={color} />
       </View>
-      <Text style={[styles.menuLabel, { color: colors.text, fontFamily: 'DMSans_500Medium' }]}>{label}</Text>
+      <Text
+        style={[
+          styles.menuLabel,
+          { color: colors.text, fontFamily: "DMSans_500Medium" },
+        ]}
+      >
+        {label}
+      </Text>
       <View style={styles.menuRight}>
         {badge && (
           <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.badgeText, { fontFamily: 'DMSans_600SemiBold' }]}>{badge}</Text>
+            <Text
+              style={[styles.badgeText, { fontFamily: "DMSans_600SemiBold" }]}
+            >
+              {badge}
+            </Text>
           </View>
         )}
         <Feather name="chevron-right" size={16} color={colors.textTertiary} />
@@ -30,70 +129,167 @@ function MenuItem({ icon, label, color, badge, onPress }: { icon: string; label:
 }
 
 export default function MoreScreen() {
-  const scheme = useColorScheme();
+  const { scheme } = useTheme();
   const colors = useThemeColors(scheme);
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
-  const webTop = Platform.OS === 'web' ? 67 : 0;
-  const webBottom = Platform.OS === 'web' ? 84 : 0;
+  const webTop = Platform.OS === "web" ? 67 : 0;
+  const webBottom = Platform.OS === "web" ? 84 : 0;
 
-  const unpaidCount = invoices.filter(i => i.status !== 'paid').length;
+  const unpaidCount = invoices.filter((i) => i.status !== "paid").length;
 
   const handleLogout = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: async () => {
-        await logout();
-      }},
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          await logout();
+        },
+      },
     ]);
   };
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top + 16 + webTop, paddingBottom: 100 + webBottom }}>
-        <Text style={[styles.pageTitle, { color: colors.text, fontFamily: 'DMSans_700Bold' }]}>More</Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: insets.top + 16 + webTop,
+          paddingBottom: 100 + webBottom,
+        }}
+      >
+        <Text
+          style={[
+            styles.pageTitle,
+            { color: colors.text, fontFamily: "DMSans_700Bold" },
+          ]}
+        >
+          More
+        </Text>
 
-        <Pressable style={[styles.profileCard, { backgroundColor: colors.card }]} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}>
-          <View style={[styles.profileAvatar, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.profileInitials, { fontFamily: 'DMSans_700Bold' }]}>{user?.avatar || 'U'}</Text>
+        <Pressable
+          style={[styles.profileCard, { backgroundColor: colors.card }]}
+          onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+        >
+          <View
+            style={[styles.profileAvatar, { backgroundColor: colors.primary }]}
+          >
+            <Text
+              style={[styles.profileInitials, { fontFamily: "DMSans_700Bold" }]}
+            >
+              {user?.avatar || "U"}
+            </Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.text, fontFamily: 'DMSans_600SemiBold' }]}>{user?.name || 'User'}</Text>
-            <Text style={[styles.profileEmail, { color: colors.textSecondary, fontFamily: 'DMSans_400Regular' }]}>{user?.email || ''}</Text>
+            <Text
+              style={[
+                styles.profileName,
+                { color: colors.text, fontFamily: "DMSans_600SemiBold" },
+              ]}
+            >
+              {user?.name || "User"}
+            </Text>
+            <Text
+              style={[
+                styles.profileEmail,
+                {
+                  color: colors.textSecondary,
+                  fontFamily: "DMSans_400Regular",
+                },
+              ]}
+            >
+              {user?.email || ""}
+            </Text>
           </View>
           <Feather name="chevron-right" size={18} color={colors.textTertiary} />
         </Pressable>
 
         <View style={[styles.menuSection, { backgroundColor: colors.card }]}>
-          <MenuItem icon="file-text" label="Invoices" color={colors.accent} badge={String(unpaidCount)} onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push({ pathname: '/invoice-detail', params: { view: 'list' } });
-          }} />
+          <MenuItem
+            icon="file-text"
+            label="Invoices"
+            color={colors.accent}
+            badge={String(unpaidCount)}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push({
+                pathname: "/invoice-detail",
+                params: { view: "list" },
+              });
+            }}
+          />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="trending-up" label="Investments" color="#FF6B8A" onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)} />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="dollar-sign" label="Loans" color={colors.warning} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)} />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="bar-chart-2" label="Accounting" color={colors.primary} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)} />
+          <MenuItem
+            icon="bar-chart-2"
+            label="Accounting"
+            color={colors.primary}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/accounting");
+            }}
+          />
         </View>
 
         <View style={[styles.menuSection, { backgroundColor: colors.card }]}>
-          <MenuItem icon="user" label="Personal Info" color={colors.accent} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)} />
+          <MenuItem
+            icon="user"
+            label="Personal Info"
+            color={colors.accent}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/personal-info");
+            }}
+          />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="shield" label="Security" color={colors.primary} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)} />
+          <ThemeToggleItem />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="bell" label="Notifications" color={colors.warning} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)} />
+          <MenuItem
+            icon="shield"
+            label="Security"
+            color={colors.primary}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/security");
+            }}
+          />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="help-circle" label="Help & Support" color={colors.textSecondary} onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)} />
+          <MenuItem
+            icon="bell"
+            label="Notifications"
+            color={colors.warning}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/notifications");
+            }}
+          />
         </View>
 
-        <Pressable style={[styles.logoutBtn, { backgroundColor: colors.errorMuted }]} onPress={handleLogout}>
+        <Pressable
+          style={[styles.logoutBtn, { backgroundColor: colors.errorMuted }]}
+          onPress={handleLogout}
+        >
           <Feather name="log-out" size={18} color={colors.error} />
-          <Text style={[styles.logoutText, { color: colors.error, fontFamily: 'DMSans_600SemiBold' }]}>Sign Out</Text>
+          <Text
+            style={[
+              styles.logoutText,
+              { color: colors.error, fontFamily: "DMSans_600SemiBold" },
+            ]}
+          >
+            Sign Out
+          </Text>
         </Pressable>
 
-        <Text style={[styles.version, { color: colors.textTertiary, fontFamily: 'DMSans_400Regular' }]}>Venn v1.0.0</Text>
+        <Text
+          style={[
+            styles.version,
+            { color: colors.textTertiary, fontFamily: "DMSans_400Regular" },
+          ]}
+        >
+          Venn v1.0.0
+        </Text>
       </ScrollView>
     </View>
   );
@@ -102,21 +298,64 @@ export default function MoreScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   pageTitle: { fontSize: 28, paddingHorizontal: 20, marginBottom: 20 },
-  profileCard: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, borderRadius: 18, padding: 16, marginBottom: 24, gap: 14 },
-  profileAvatar: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-  profileInitials: { color: '#fff', fontSize: 18 },
+  profileCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 20,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 24,
+    gap: 14,
+  },
+  profileAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileInitials: { color: "#fff", fontSize: 18 },
   profileInfo: { flex: 1 },
   profileName: { fontSize: 16, marginBottom: 2 },
   profileEmail: { fontSize: 13 },
-  menuSection: { marginHorizontal: 20, borderRadius: 18, padding: 4, marginBottom: 16 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
-  menuIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  menuSection: {
+    marginHorizontal: 20,
+    borderRadius: 18,
+    padding: 4,
+    marginBottom: 16,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    gap: 12,
+  },
+  menuIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   menuLabel: { flex: 1, fontSize: 15 },
-  menuRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  menuRight: { flexDirection: "row", alignItems: "center", gap: 8 },
   badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  badgeText: { color: '#fff', fontSize: 11 },
+  badgeText: { color: "#fff", fontSize: 11 },
   divider: { height: 1, marginHorizontal: 14 },
-  logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 20, borderRadius: 14, padding: 16, gap: 8, marginBottom: 16 },
+  themeToggleContainer: { flex: 1, alignItems: "flex-end" },
+  themeButtons: { flexDirection: "row", borderRadius: 8, borderWidth: 1 },
+  themeButton: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
+  themeButtonText: { fontSize: 12 },
+  logoutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 20,
+    borderRadius: 14,
+    padding: 16,
+    gap: 8,
+    marginBottom: 16,
+  },
   logoutText: { fontSize: 15 },
-  version: { textAlign: 'center', fontSize: 12, marginBottom: 20 },
+  version: { textAlign: "center", fontSize: 12, marginBottom: 20 },
 });
