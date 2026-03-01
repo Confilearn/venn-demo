@@ -190,7 +190,7 @@ export default function MoreScreen() {
                 { color: colors.text, fontFamily: "DMSans_600SemiBold" },
               ]}
             >
-              {user?.name || "User"}
+              {user ? `${user.firstName} ${user.lastName}` : "User"}
             </Text>
             <Text
               style={[
