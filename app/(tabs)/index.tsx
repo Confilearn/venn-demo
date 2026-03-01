@@ -280,7 +280,7 @@ export default function DashboardScreen() {
                 { color: colors.text, fontFamily: "DMSans_700Bold" },
               ]}
             >
-              {user?.name?.split(" ")[0] || "User"}
+              {user?.firstName || "User"}
             </Text>
           </View>
           <Pressable

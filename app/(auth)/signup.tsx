@@ -23,7 +23,8 @@ export default function SignupScreen() {
   const colors = useThemeColors(scheme);
   const insets = useSafeAreaInsets();
   const { signup } = useAuth();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,7 +34,7 @@ export default function SignupScreen() {
   const webTop = Platform.OS === "web" ? 67 : 0;
 
   const handleSignup = async () => {
-    if (!name || !email || !password) {
+    if (!firstName || !lastName || !email || !password) {
       setError("Please fill in all fields");
       return;
     }
@@ -44,7 +45,7 @@ export default function SignupScreen() {
     setError("");
     setLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const success = await signup(name, email, password);
+    const success = await signup(firstName, lastName, email, password);
     setLoading(false);
     if (success) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -109,33 +110,76 @@ export default function SignupScreen() {
               </Text>
             </View>
           )}
-          <View>
-            <Text
-              style={[
-                styles.label,
-                { color: colors.textSecondary, fontFamily: "DMSans_500Medium" },
-              ]}
-            >
-              Full Name
-            </Text>
-            <View
-              style={[
-                styles.inputContainer,
-                { backgroundColor: colors.surface, borderColor: colors.border },
-              ]}
-            >
-              <Feather name="user" size={18} color={colors.textTertiary} />
-              <TextInput
+          <View style={styles.nameColumn}>
+            <View style={styles.nameInputContainer}>
+              <Text
                 style={[
-                  styles.input,
-                  { color: colors.text, fontFamily: "DMSans_400Regular" },
+                  styles.label,
+                  {
+                    color: colors.textSecondary,
+                    fontFamily: "DMSans_500Medium",
+                  },
                 ]}
-                placeholder="Jordan Mitchell"
-                placeholderTextColor={colors.textTertiary}
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-              />
+              >
+                First Name
+              </Text>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Feather name="user" size={18} color={colors.textTertiary} />
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: colors.text, fontFamily: "DMSans_400Regular" },
+                  ]}
+                  placeholder="Confidence"
+                  placeholderTextColor={colors.textTertiary}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoCapitalize="words"
+                />
+              </View>
+            </View>
+            <View style={styles.nameInputContainer}>
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: colors.textSecondary,
+                    fontFamily: "DMSans_500Medium",
+                  },
+                ]}
+              >
+                Last Name
+              </Text>
+              <View
+                style={[
+                  styles.inputContainer,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Feather name="user" size={18} color={colors.textTertiary} />
+                <TextInput
+                  style={[
+                    styles.input,
+                    { color: colors.text, fontFamily: "DMSans_400Regular" },
+                  ]}
+                  placeholder="Ezeorah"
+                  placeholderTextColor={colors.textTertiary}
+                  value={lastName}
+                  onChangeText={setLastName}
+                  autoCapitalize="words"
+                />
+              </View>
             </View>
           </View>
           <View>
@@ -284,6 +328,8 @@ const styles = StyleSheet.create({
     height: 52,
     gap: 12,
   },
+  nameColumn: { flexDirection: "column", gap: 16 },
+  nameInputContainer: { flex: 1 },
   input: { flex: 1, fontSize: 15, height: "100%" },
   button: {
     height: 52,

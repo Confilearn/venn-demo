@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import * as Haptics from "expo-haptics";
 import { useThemeColors } from "@/constants/colors";
 import { useTheme } from "@/lib/theme-context";
 import { useToast } from "@/lib/toast-context";
+import { useAuth } from "@/lib/auth-context";
 import { Stack } from "expo-router";
 
 export default function PersonalInfoScreen() {
@@ -25,13 +26,14 @@ export default function PersonalInfoScreen() {
   const colors = useThemeColors(scheme);
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
+  const { user, updateUser } = useAuth();
   const webTop = Platform.OS === "web" ? 67 : 0;
 
   const [personalInfo, setPersonalInfo] = useState({
-    firstName: "Confidence",
-    lastName: "Ezeorah",
-    email: "confidence@venn.ca",
-    phone: "+1 (416) 555-0142",
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    email: user?.email || "",
+    phone: user?.phone || "+1 (416) 555-0142",
     address: "123 Tech Street, Suite 100",
     city: "Toronto",
     state: "ON",
@@ -40,6 +42,18 @@ export default function PersonalInfoScreen() {
     dateOfBirth: "1995-06-15",
     ssnLast4: "6789",
   });
+
+  useEffect(() => {
+    if (user) {
+      setPersonalInfo((prev) => ({
+        ...prev,
+        firstName: user.firstName || prev.firstName,
+        lastName: user.lastName || prev.lastName,
+        email: user.email || prev.email,
+        phone: user.phone || prev.phone,
+      }));
+    }
+  }, [user]);
 
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editField, setEditField] = useState<string>("");
@@ -61,12 +75,25 @@ export default function PersonalInfoScreen() {
     loginAlerts: true,
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (hasChanges) {
       setPersonalInfo(tempPersonalInfo);
       setHasChanges(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      showToast("Personal information updated successfully", "success");
+
+      // Update user in auth context and AsyncStorage
+      const success = await updateUser({
+        firstName: tempPersonalInfo.firstName,
+        lastName: tempPersonalInfo.lastName,
+        email: tempPersonalInfo.email,
+        phone: tempPersonalInfo.phone,
+      });
+
+      if (success) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        showToast("Personal information updated successfully", "success");
+      } else {
+        showToast("Failed to update information", "error");
+      }
     }
   };
 
