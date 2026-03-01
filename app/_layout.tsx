@@ -12,6 +12,7 @@ import {
   DMSans_700Bold,
 } from "@expo-google-fonts/dm-sans";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AuthLoader } from "@/components/AuthLoader";
 import { queryClient } from "@/lib/query-client";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { ThemeProvider, useTheme } from "@/lib/theme-context";
@@ -24,16 +25,37 @@ function RootLayoutNav() {
   const { isAuthenticated, isLoading } = useAuth();
   const { scheme } = useTheme();
   const segments = useSegments();
+  const [initialCheckDone, setInitialCheckDone] = React.useState(false);
 
   useEffect(() => {
     if (isLoading) return;
+
     const inAuthGroup = segments[0] === "(auth)";
     if (!isAuthenticated && !inAuthGroup) {
       router.replace("/(auth)/login");
     } else if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
     }
+
+    // Mark initial check as done
+    setInitialCheckDone(true);
   }, [isAuthenticated, isLoading, segments]);
+
+  // Show loader while checking authentication state or during initial check
+  if (isLoading || !initialCheckDone) {
+    // Hide splash screen when showing our loader
+    SplashScreen.hideAsync();
+    return (
+      <>
+        <StatusBar
+          style={scheme === "dark" ? "light" : "dark"}
+          backgroundColor={scheme === "dark" ? "#0A0E17" : "#F5F7FA"}
+          translucent={false}
+        />
+        <AuthLoader />
+      </>
+    );
+  }
 
   return (
     <>
