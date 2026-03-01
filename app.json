@@ -22,15 +22,28 @@
         "foregroundImage": "./assets/images/icon.png",
         "backgroundImage": "./assets/images/icon.png",
         "monochromeImage": "./assets/images/icon.png"
-      }
+      },
+      "package": "com.confilearn.vennfintech"
     },
     "web": {
       "favicon": "./assets/images/icon.png"
     },
-    "plugins": [["expo-router"], "expo-font", "expo-web-browser"],
+    "plugins": [
+      [
+        "expo-router"
+      ],
+      "expo-font",
+      "expo-web-browser"
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "460cb53b-1a59-4052-b2a1-aa674f2b8b9c"
+      }
     }
   }
 }
